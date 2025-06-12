@@ -1,46 +1,74 @@
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import org.json.JSONObject;
+package task1_java;
 
-public class WeatherClient {
+import java.io.*;
+import java.nio.file.*;
+
+public class FileHandlingUtility {
+
+    // Define the file path (you can change this path if needed)
+    private static final String FILE_NAME = "example.txt";
 
     public static void main(String[] args) {
-        String apiKey = "YOUR_API_KEY"; // replace with your API key
-        String city = "London";
-        String urlString = String.format(
-            "https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=metric", 
-            city, apiKey);
-
         try {
-            URL url = new URL(urlString);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
+            // 1. Write content to the file
+            writeToFile("Welcome to the File Handling Utility!\nThis is a test file.\n");
 
-            BufferedReader reader = new BufferedReader(
-                new InputStreamReader(conn.getInputStream()));
-            StringBuilder response = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
-            reader.close();
+            // 2. Read and display the file content
+            System.out.println("=== Original File Content ===");
+            readFromFile();
 
-            // Parse JSON
-            JSONObject json = new JSONObject(response.toString());
-            String cityName = json.getString("name");
-            double temp = json.getJSONObject("main").getDouble("temp");
-            String weather = json.getJSONArray("weather")
-                                  .getJSONObject(0).getString("description");
+            // 3. Modify content: Replace the word "test" with "demo"
+            modifyFileContent("test", "demo");
 
-            // Display Output
-            System.out.println("Weather for " + cityName + ":");
-            System.out.println("Temperature: " + temp + "°C");
-            System.out.println("Condition: " + weather);
+            // 4. Display modified content
+            System.out.println("\n=== Modified File Content ===");
+            readFromFile();
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
         }
     }
+
+    /**
+     * Writes the specified content to a file.
+     * If the file exists, it will be overwritten.
+     */
+    public static void writeToFile(String content) throws IOException {
+        // Using BufferedWriter to write text to the file
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
+            writer.write(content);
+            System.out.println("✅ File written successfully.");
+        }
+    }
+
+    /**
+     * Reads and prints the content of the file line by line.
+     */
+    public static void readFromFile() throws IOException {
+        // Using BufferedReader to read the file line by line
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        }
+    }
+
+    /**
+     * Modifies the content of the file by replacing all occurrences of
+     * oldWord with newWord.
+     */
+    public static void modifyFileContent(String oldWord, String newWord) throws IOException {
+        // Read the file content into a string
+        Path filePath = Paths.get(FILE_NAME);
+        String content = new String(Files.readAllBytes(filePath));
+
+        // Replace the old word with the new word
+        String modifiedContent = content.replaceAll(oldWord, newWord);
+
+        // Write the modified content back to the file
+        Files.write(filePath, modifiedContent.getBytes());
+        System.out.println("✏ File modified: '" + oldWord + "' replaced with '" + newWord + "'.");
+    }
+
 }
